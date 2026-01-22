@@ -1,8 +1,8 @@
-import 'package:eios_flut/models/user_models.dart';
+import 'package:eios_flut/model/userModel.dart';
 import 'package:flutter/material.dart';
-import 'profile.dart';
-import 'timetable_screen.dart';
-import 'disciplines_screen.dart';
+import 'profileScreen.dart';
+import 'timetableScreen.dart';
+import '../view/disciplinesScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   final Token token;
@@ -56,8 +56,6 @@ class _HomeScreenState extends State<HomeScreen> {
             _selectedIndex = index;
           });
         },
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Профиль"),
           BottomNavigationBarItem(icon: Icon(Icons.schedule), label: "Расписание"),

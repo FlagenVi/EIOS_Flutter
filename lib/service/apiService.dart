@@ -1,10 +1,20 @@
 import 'dart:convert';
-import 'package:eios_flut/models/student_semester_models.dart';
-import 'package:eios_flut/models/user_models.dart';
 import 'package:http/http.dart' as http;
-import 'models/rating_plan_models.dart';
-import 'models/timetable_models.dart';
+import '../model/userModel.dart';
+import '../model/newsModel.dart';
+import '../model/ratingPlanModel.dart';
+import '../model/studentSemesterModel.dart';
+import '../model/timetableModel.dart';
 
+class TimetableResponse {
+  final List<StudentTimeTable> items;
+  final List<dynamic> raw;
+
+  TimetableResponse({
+    required this.items,
+    required this.raw,
+  });
+}
 
 class ApiService {
   static const String baseUrl = 'https://p.mrsu.ru/';
@@ -54,7 +64,30 @@ class ApiService {
     }
   }
 
-  Future<List<StudentTimeTable>> getStudentTimeTable(String tokenType, String accessToken, String date) async {
+  Future<List<News>> getNews(String tokenType, String accessToken) async {
+    final newsUrl = '$baseUserUrl/v1/News';
+    final response = await http.get(
+      Uri.parse(newsUrl),
+      headers: {
+        'Authorization': '$tokenType $accessToken',
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+      print("JSON новостей: $jsonResponse"); // Для отладки
+      if (jsonResponse is List) {
+        return jsonResponse.map((item) => News.fromJson(item)).toList();
+      } else {
+        throw Exception('Неверный формат данных новостей: $jsonResponse');
+      }
+    } else {
+      throw Exception('Ошибка при получении новостей: ${response.body}');
+    }
+  }
+
+  Future<TimetableResponse> getStudentTimeTable(String tokenType, String accessToken, String date) async {
     final timetableUrl = '$baseUserUrl/v1/StudentTimeTable?date=$date';
     final response = await http.get(
       Uri.parse(timetableUrl),
@@ -64,8 +97,15 @@ class ApiService {
       },
     );
     if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body) as List;
-      return jsonResponse.map((e) => StudentTimeTable.fromJson(e)).toList();
+      final jsonResponse = json.decode(response.body);
+      if (jsonResponse is! List) {
+        throw Exception('Неверный формат расписания: ${response.body}');
+      }
+      final items = jsonResponse
+          .whereType<Map<String, dynamic>>()
+          .map((e) => StudentTimeTable.fromJson(e))
+          .toList();
+      return TimetableResponse(items: items, raw: jsonResponse);
     } else {
       throw Exception('Ошибка при получении расписания: ${response.body}');
     }
@@ -73,7 +113,6 @@ class ApiService {
 
   Future<StudentSemester> getStudentSemester(String tokenType, String accessToken) async {
     final semesterUrl = '$baseUserUrl/v1/StudentSemester?selector=current';
-    print("Запрос к URL: $semesterUrl");
     try {
       final response = await http.get(
         Uri.parse(semesterUrl),
@@ -82,8 +121,6 @@ class ApiService {
           'Accept': 'application/json',
         },
       );
-      print("Статус ответа: ${response.statusCode}");
-      print("Ответ: ${response.body}");
 
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
@@ -104,11 +141,9 @@ class ApiService {
         throw Exception('Ошибка получения семестра: ${response.body}');
       }
     } catch (e) {
-      print("Ошибка запроса: $e");
       throw Exception('Ошибка запроса: $e');
     }
   }
-
 
   Future<StudentRatingPlan> getRatingPlan(String tokenType, String accessToken, int disciplineId) async {
     final ratingPlanUrl = '$baseUserUrl/v1/StudentRatingPlan?id=$disciplineId';
@@ -126,5 +161,4 @@ class ApiService {
       throw Exception('Ошибка получения рейтингового плана: ${response.body}');
     }
   }
-
 }

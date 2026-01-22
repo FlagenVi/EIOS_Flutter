@@ -39,8 +39,15 @@ class UserPhoto {
       urlSource: json['UrlSource'] as String,
     );
   }
-}
 
+  Map<String, dynamic> toJson() {
+    return {
+      'UrlSmall': urlSmall,
+      'UrlMedium': urlMedium,
+      'UrlSource': urlSource,
+    };
+  }
+}
 
 class User {
   final String? email;
@@ -91,5 +98,23 @@ class User {
           ? UserPhoto.fromJson(json['Photo'] as Map<String, dynamic>)
           : null,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'Email': email,
+      'EmailConfirmed': emailConfirmed,
+      'EnglishFIO': englishFio,
+      'TeacherCod': teacherCod,
+      'StudentCod': studentCod,
+      'BirthDate': birthDate,
+      'AcademicDegree': academicDegree,
+      'AcademicRank': academicRank,
+      'Roles': roles,
+      'Id': id,
+      'UserName': userName,
+      'FIO': fio,
+      'Photo': photo?.toJson(),
+    };
   }
 }
